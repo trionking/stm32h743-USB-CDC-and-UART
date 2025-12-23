@@ -123,13 +123,22 @@ USB OTG ──► RAM_D1 ✓ AXI 버스로 접근 가능
 - `usbd_cdc_if.c`: USER CODE BEGIN 7 섹션에서 `memcpy` 후 전송
 - `usbd_conf.c`: 원본 `USBD_static_malloc` 함수 `#if 0`으로 비활성화
 
-**CubeMX 재생성 후 체크리스트:**
-- [ ] `usbd_conf.c`의 `USBD_static_malloc` 함수가 `#if 0`으로 비활성화 되어있는지 확인
-- [ ] `usbd_conf.c`의 `dma_enable` 설정 확인 (현재 DISABLE 사용 중)
+**CubeMX 재생성 후 필수 수정사항:**
 
-**USB OTG FS Internal DMA 참고:**
-- 현재 프로젝트는 Internal DMA 비활성화 상태로 동작 확인됨
-- DMA 활성화 시 추가 설정이 필요할 수 있음 (ST 공식 문서 참고)
+1. **USBD_static_malloc 비활성화** (`usbd_conf.c` 640~660줄 근처)
+   - CubeMX가 재생성하는 함수는 DTCM에 버퍼 할당 → Hard Fault 유발
+   - `#if 0` ~ `#endif`로 감싸서 비활성화 필수
+   - `buffers.c`의 RAM_D1 버전이 대신 사용됨
+
+2. **dma_enable 설정 확인** (`usbd_conf.c` 350줄 근처)
+   - CubeMX "Enable internal IP DMA" 옵션에 따라 값이 변경됨
+   - `DISABLE`: 동작 확인됨 (현재 설정)
+   - `ENABLE`: 추가 설정 필요할 수 있음
+
+**체크리스트:**
+- [ ] `USBD_static_malloc` 함수를 `#if 0`으로 감싸기
+- [ ] `dma_enable = DISABLE` 확인
+- [ ] 빌드 후 USB CDC 포트 생성 확인
 
 상세 분석: `.doc/USB_CDC_HardFault_Analysis_20251223_1530.md`
 

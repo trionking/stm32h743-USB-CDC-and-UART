@@ -122,10 +122,70 @@ make all
 
 ## CubeMX 재생성 시 주의사항
 
-CubeMX로 코드 재생성 후 **반드시** 다음 사항 확인:
+CubeMX로 코드 재생성 후 **반드시** 아래 사항을 확인하고 수정해야 합니다.
 
-- [ ] `usbd_conf.c`의 `USBD_static_malloc` 함수가 `#if 0`으로 비활성화 되어있는지 확인
-- [ ] `usbd_conf.c`의 `dma_enable` 설정 확인 (현재 DISABLE 사용 중)
+### 1. USBD_static_malloc 함수 비활성화 (필수!)
+
+**파일**: `USB_DEVICE/Target/usbd_conf.c`
+
+CubeMX가 재생성하는 `USBD_static_malloc` 함수는 DTCM 영역에 버퍼를 할당하므로 **Hard Fault**를 유발합니다.
+이 함수를 `#if 0`으로 비활성화해야 `buffers.c`의 RAM_D1 버전이 사용됩니다.
+
+**수정 전** (CubeMX 재생성 직후):
+```c
+void *USBD_static_malloc(uint32_t size)
+{
+  UNUSED(size);
+  static uint32_t mem[(sizeof(USBD_CDC_HandleTypeDef)/4)+1];/* On 32-bit boundary */
+  return mem;
+}
+```
+
+**수정 후**:
+```c
+/* [주의] CubeMX 재생성 후 이 함수를 #if 0으로 비활성화할 것!
+ * buffers.c에서 RAM_D1 영역의 버퍼를 사용하는 버전으로 대체됨
+ * USB OTG FS는 DTCM 접근 불가 - RAM_D1 필수
+ */
+#if 0  /* buffers.c에서 정의됨 */
+void *USBD_static_malloc(uint32_t size)
+{
+  UNUSED(size);
+  static uint32_t mem[(sizeof(USBD_CDC_HandleTypeDef)/4)+1];/* On 32-bit boundary */
+  return mem;
+}
+#endif
+```
+
+> **위치**: 파일 끝부분 (약 640~660번째 줄 근처)
+
+### 2. USB Internal DMA 설정 확인
+
+**파일**: `USB_DEVICE/Target/usbd_conf.c`
+
+CubeMX에서 "Enable internal IP DMA" 옵션을 변경하면 `dma_enable` 값이 바뀝니다.
+현재 프로젝트는 **Internal DMA 비활성화** 상태에서 동작 확인되었습니다.
+
+```c
+// HAL_PCD_MspInit 함수 내부 (약 350번째 줄)
+hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;  // 현재 설정
+```
+
+| CubeMX 설정 | 생성되는 코드 | 상태 |
+|-------------|---------------|------|
+| Enable internal IP DMA: **체크 해제** | `dma_enable = DISABLE` | ✅ 동작 확인됨 |
+| Enable internal IP DMA: **체크** | `dma_enable = ENABLE` | ⚠️ 추가 설정 필요 |
+
+> **참고**: Internal DMA 활성화 시 추가 설정이 필요할 수 있습니다.
+> 활성화를 원하는 경우 ST 공식 문서 및 예제를 참고하세요.
+
+### 체크리스트
+
+CubeMX 재생성 후:
+
+- [ ] `usbd_conf.c`에서 `USBD_static_malloc` 함수를 `#if 0`으로 감싸기
+- [ ] `usbd_conf.c`의 `dma_enable` 값 확인 (DISABLE 권장)
+- [ ] 빌드 후 USB CDC 포트 생성 확인
 
 `USER CODE` 섹션 내의 코드는 자동으로 보존됩니다.
 
