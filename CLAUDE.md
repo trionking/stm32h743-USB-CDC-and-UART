@@ -125,12 +125,11 @@ USB OTG ──► RAM_D1 ✓ AXI 버스로 접근 가능
 
 **CubeMX 재생성 후 체크리스트:**
 - [ ] `usbd_conf.c`의 `USBD_static_malloc` 함수가 `#if 0`으로 비활성화 되어있는지 확인
-- [ ] `usbd_conf.c`의 `dma_enable = DISABLE` 확인 (USB FS는 Internal DMA 사용 불가)
+- [ ] `usbd_conf.c`의 `dma_enable` 설정 확인 (현재 DISABLE 사용 중)
 
-**USB OTG FS Internal DMA 주의:**
-- STM32H7의 USB OTG **FS**는 Internal DMA 활성화 시 포트 생성 안 됨
-- CubeMX에서 "Enable internal IP DMA" 옵션 **비활성화** 유지
-- USB OTG **HS**는 Internal DMA 사용 가능
+**USB OTG FS Internal DMA 참고:**
+- 현재 프로젝트는 Internal DMA 비활성화 상태로 동작 확인됨
+- DMA 활성화 시 추가 설정이 필요할 수 있음 (ST 공식 문서 참고)
 
 상세 분석: `.doc/USB_CDC_HardFault_Analysis_20251223_1530.md`
 

@@ -43,21 +43,17 @@ STM32H7의 다중 메모리 영역을 활용한 최적화 구성:
 
 ## USB CDC 설정 (중요!)
 
-### 1. Internal DMA 비활성화 필수
+### 1. Internal DMA 설정
 
-**STM32H7의 USB OTG FS는 Internal DMA 사용 시 USB 포트가 생성되지 않습니다.**
-
-| USB 종류 | Internal DMA | 상태 |
-|---------|--------------|------|
-| USB OTG **FS** | DISABLE | 필수 (ENABLE 시 동작 안 함) |
-| USB OTG **HS** | ENABLE | 사용 가능 |
+현재 프로젝트에서는 USB OTG FS Internal DMA를 **비활성화**하여 사용 중입니다.
 
 ```c
 // usbd_conf.c
-hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;  // 필수!
+hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
 ```
 
-> CubeMX에서 "Enable internal IP DMA" 옵션을 **반드시 비활성화**하세요.
+> **참고**: Internal DMA 활성화 시 추가 설정이 필요할 수 있습니다.
+> DMA 활성화를 원하는 경우 ST 공식 문서 및 예제를 참고하세요.
 
 ### 2. 메모리 제약 - Hard Fault 방지
 
@@ -129,7 +125,7 @@ make all
 CubeMX로 코드 재생성 후 **반드시** 다음 사항 확인:
 
 - [ ] `usbd_conf.c`의 `USBD_static_malloc` 함수가 `#if 0`으로 비활성화 되어있는지 확인
-- [ ] `usbd_conf.c`의 `dma_enable = DISABLE` 확인 (USB FS Internal DMA 비활성화)
+- [ ] `usbd_conf.c`의 `dma_enable` 설정 확인 (현재 DISABLE 사용 중)
 
 `USER CODE` 섹션 내의 코드는 자동으로 보존됩니다.
 
