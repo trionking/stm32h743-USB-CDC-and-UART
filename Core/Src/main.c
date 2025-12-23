@@ -128,7 +128,7 @@ int main(void)
   MX_MDMA_Init();
   MX_DMA_Init();
   MX_FMC_Init();
-  //MX_SDMMC1_SD_Init();
+  MX_SDMMC1_SD_Init();
   MX_UART4_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();

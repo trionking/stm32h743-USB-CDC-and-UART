@@ -353,7 +353,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
   hpcd_USB_OTG_FS.Init.dev_endpoints = 9;
   hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
-  hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
+  hpcd_USB_OTG_FS.Init.dma_enable = ENABLE;
   hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
   hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
   hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
@@ -642,10 +642,11 @@ USBD_StatusTypeDef USBD_LL_SetTestMode(USBD_HandleTypeDef *pdev, uint8_t testmod
   * @param  size: Size of allocated memory
   * @retval None
   */
-/* [주의] CubeMX 재생성 후 이 함수를 주석 처리할 것!
+/* [주의] CubeMX 재생성 후 이 함수를 #if 0으로 비활성화할 것!
  * buffers.c에서 RAM_D1 영역의 버퍼를 사용하는 버전으로 대체됨
+ * USB OTG FS DMA는 DTCM 접근 불가 - RAM_D1 필수
  */
-#if 0  /* buffers.c에서 정의됨 - USB OTG FS는 DTCM 접근 불가 */
+#if 0  /* buffers.c에서 정의됨 */
 void *USBD_static_malloc(uint32_t size)
 {
   UNUSED(size);
