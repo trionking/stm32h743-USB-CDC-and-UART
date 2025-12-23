@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Clean and Build",
+            "type": "shell",
+            "command": "${env:STM32_CUBE_IDE_PATH}/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.make.win32_2.2.0.202409170845/tools/bin/make.exe",
+            "args": [
+                "clean",
+                "all",
+                "-j"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/Debug",
+                "env": {
+                    "PATH": "${env:STM32_CUBE_CLT_PATH}/GNU-tools-for-STM32/bin;${env:PATH}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
+}

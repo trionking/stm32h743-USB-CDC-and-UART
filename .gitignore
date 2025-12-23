@@ -1,0 +1,23 @@
+# Build output
+Debug/
+Release/
+
+# IDE settings (optional - can be tracked if team shares settings)
+# .settings/
+# .cproject
+# .project
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+nul
+
+# Object files
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.list
