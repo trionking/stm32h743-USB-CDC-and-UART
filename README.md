@@ -18,7 +18,17 @@ USB CDC (Virtual COM Port)와 다중 UART 통신을 지원하며, STM32H7의 복
 | MCU | STM32H743ZITx |
 | 코어 | ARM Cortex-M7 @ 480MHz |
 | Flash | 2MB |
-| RAM | DTCM 128KB + AXI SRAM 512KB + SRAM 288KB |
+| RAM | 총 1056KB (아래 상세) |
+
+### RAM 상세 구성
+
+| 영역 | 주소 | 크기 | 버스 | 특징 |
+|------|------|------|------|------|
+| ITCMRAM | 0x00000000 | 64KB | TCM | 고속 명령어 실행, 0-wait |
+| DTCMRAM | 0x20000000 | 128KB | TCM | 고속 데이터, 스택/힙, 0-wait |
+| RAM_D1 (AXI SRAM) | 0x24000000 | 512KB | AXI | USB/SDMMC 접근 가능 |
+| RAM_D2 (AHB SRAM) | 0x30000000 | 288KB | AHB | DMA1/DMA2 접근 가능 |
+| RAM_D3 (AHB SRAM) | 0x38000000 | 64KB | AHB | BDMA 전용, 저전력 모드 유지 |
 
 ## 메모리 구성
 
