@@ -41,12 +41,26 @@ STM32H7의 다중 메모리 영역을 활용한 최적화 구성:
 | RAM_D1_CACHED | 0x24060000 | 128KB | 대용량 데이터 |
 | RAM_D2 | 0x30000000 | 288KB | UART DMA 버퍼 |
 
-## USB CDC 메모리 제약 (중요!)
+## USB CDC 설정 (중요!)
 
-### 문제
-STM32H7에서 USB OTG FS 사용 시 Hard Fault 발생
+### 1. Internal DMA 비활성화 필수
 
-### 원인
+**STM32H7의 USB OTG FS는 Internal DMA 사용 시 USB 포트가 생성되지 않습니다.**
+
+| USB 종류 | Internal DMA | 상태 |
+|---------|--------------|------|
+| USB OTG **FS** | DISABLE | 필수 (ENABLE 시 동작 안 함) |
+| USB OTG **HS** | ENABLE | 사용 가능 |
+
+```c
+// usbd_conf.c
+hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;  // 필수!
+```
+
+> CubeMX에서 "Enable internal IP DMA" 옵션을 **반드시 비활성화**하세요.
+
+### 2. 메모리 제약 - Hard Fault 방지
+
 **USB OTG FS는 AXI 버스만 사용하므로 DTCM(0x20000000)에 접근 불가**
 
 ```
@@ -112,9 +126,10 @@ make all
 
 ## CubeMX 재생성 시 주의사항
 
-CubeMX로 코드 재생성 후 다음 사항 확인:
+CubeMX로 코드 재생성 후 **반드시** 다음 사항 확인:
 
 - [ ] `usbd_conf.c`의 `USBD_static_malloc` 함수가 `#if 0`으로 비활성화 되어있는지 확인
+- [ ] `usbd_conf.c`의 `dma_enable = DISABLE` 확인 (USB FS Internal DMA 비활성화)
 
 `USER CODE` 섹션 내의 코드는 자동으로 보존됩니다.
 
