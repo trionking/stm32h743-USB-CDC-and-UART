@@ -16,7 +16,7 @@ USB CDC (Virtual COM Port)와 다중 UART 통신을 지원하며, STM32H7의 복
 | 항목 | 사양 |
 |------|------|
 | MCU | STM32H743ZITx |
-| 코어 | ARM Cortex-M7 @ 400MHz |
+| 코어 | ARM Cortex-M7 @ 480MHz |
 | Flash | 2MB |
 | RAM | DTCM 128KB + AXI SRAM 512KB + SRAM 288KB |
 
