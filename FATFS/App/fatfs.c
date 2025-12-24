@@ -17,11 +17,19 @@
   */
 /* USER CODE END Header */
 #include "fatfs.h"
+#include "memory_config.h"  /* SECTION_NC 매크로 - CubeMX 재생성 후 다시 추가 필요 */
 
 uint8_t retSD;    /* Return value for SD */
 char SDPath[4];   /* SD logical drive path */
-FATFS SDFatFS;    /* File system object for SD logical drive */
-FIL SDFile;       /* File object for SD */
+
+/*
+ * [중요] SDMMC IDMA는 RAM_D1만 접근 가능!
+ * FATFS 구조체 내부의 win 버퍼(512B)가 DMA 전송에 사용되므로
+ * 반드시 RAM_D1 (Non-cacheable) 영역에 배치해야 함
+ * CubeMX 재생성 후 SECTION_NC 다시 추가 필요!
+ */
+SECTION_NC FATFS SDFatFS;    /* File system object for SD logical drive */
+SECTION_NC FIL SDFile;       /* File object for SD */
 
 /* USER CODE BEGIN Variables */
 

@@ -352,6 +352,38 @@ void *USBD_static_malloc(uint32_t size) {
 }
 ```
 
+## SDMMC (SD 카드) 설정 (중요!)
+
+### 메모리 제약 - FR_DISK_ERR 방지
+
+**SDMMC IDMA는 AXI 버스만 사용하므로 DTCM(0x20000000)에 접근 불가**
+
+```
+CPU ────────► DTCM     ✓ 접근 가능
+SDMMC IDMA ──► DTCM   ✗ FR_DISK_ERR (데이터 전송 실패)
+SDMMC IDMA ──► RAM_D1 ✓ AXI 버스로 접근 가능
+```
+
+### 해결 방법
+
+**FatFs 구조체를 RAM_D1에 배치** (`FATFS/App/fatfs.c`)
+
+```c
+#include "memory_config.h"  // SECTION_NC 매크로
+
+/*
+ * [중요] SDMMC IDMA는 RAM_D1만 접근 가능!
+ * FATFS 구조체 내부의 win 버퍼(512B)가 DMA 전송에 사용되므로
+ * 반드시 RAM_D1 (Non-cacheable) 영역에 배치해야 함
+ */
+SECTION_NC FATFS SDFatFS;    // RAM_D1에 배치
+SECTION_NC FIL SDFile;       // RAM_D1에 배치
+```
+
+> **증상**: `f_mount()` 호출 시 `FR_DISK_ERR (01)` 반환
+> **원인**: `SDFatFS.win` 버퍼가 DTCM에 있어서 IDMA가 접근 불가
+> **해결**: `SECTION_NC` 매크로로 RAM_D1에 배치
+
 ## 프로젝트 구조
 
 ```
@@ -444,13 +476,37 @@ hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;  // 현재 설정
 > **참고**: Internal DMA 활성화 시 추가 설정이 필요할 수 있습니다.
 > 활성화를 원하는 경우 ST 공식 문서 및 예제를 참고하세요.
 
+### 3. FatFs 구조체 RAM_D1 배치 (필수!)
+
+**파일**: `FATFS/App/fatfs.c`
+
+CubeMX가 재생성하는 `SDFatFS`, `SDFile`은 DTCM에 배치되어 SDMMC IDMA가 접근할 수 없습니다.
+
+**수정 방법**:
+```c
+// fatfs.c 상단에 추가
+#include "memory_config.h"
+
+// 변수 선언 수정
+SECTION_NC FATFS SDFatFS;
+SECTION_NC FIL SDFile;
+```
+
 ### 체크리스트
 
 CubeMX 재생성 후:
 
+**USB CDC:**
 - [ ] `usbd_conf.c`에서 `USBD_static_malloc` 함수를 `#if 0`으로 감싸기
 - [ ] `usbd_conf.c`의 `dma_enable` 값 확인 (DISABLE 권장)
+
+**SDMMC (FatFs):**
+- [ ] `fatfs.c`에 `#include "memory_config.h"` 추가
+- [ ] `fatfs.c`의 `SDFatFS`, `SDFile`에 `SECTION_NC` 추가
+
+**확인:**
 - [ ] 빌드 후 USB CDC 포트 생성 확인
+- [ ] 빌드 후 SD 카드 마운트 확인
 
 `USER CODE` 섹션 내의 코드는 자동으로 보존됩니다.
 
