@@ -108,6 +108,59 @@ STM32H7의 다중 메모리 영역을 활용한 최적화 구성:
 | RAM_D2 | 0x30000000 | 288KB | UART DMA 버퍼 |
 | RAM_D3 | 0x38000000 | 64KB | BDMA 버퍼 (D3 도메인 전용) |
 
+### 링커 스크립트로 RAM 자동 할당 설정
+
+기본적으로 일반 변수는 DTCM에 할당됩니다. 자동으로 다른 RAM에 할당하려면 링커 스크립트를 수정할 수 있습니다.
+
+#### 방법 1: 기본 RAM을 RAM_D1_CACHED로 변경
+
+`STM32H743ZITX_FLASH.ld`에서:
+
+```ld
+/* 변경 전 */
+MEMORY
+{
+  RAM (xrw)   : ORIGIN = 0x20000000, LENGTH = 128K   /* DTCM */
+}
+
+/* 변경 후 - RAM_D1_CACHED를 기본으로 */
+MEMORY
+{
+  DTCM (xrw)  : ORIGIN = 0x20000000, LENGTH = 128K
+  RAM (xrw)   : ORIGIN = 0x24060000, LENGTH = 128K   /* RAM_D1_CACHED */
+}
+```
+
+이렇게 하면 일반 변수가 자동으로 RAM_D1_CACHED에 할당됩니다.
+
+#### 방법 2: DTCM + RAM_D1 연결 (Overflow)
+
+```ld
+SECTIONS
+{
+  .bss :
+  {
+    *(.bss*)
+  } >DTCM AT> DTCM
+
+  /* DTCM 초과 시 RAM_D1_CACHED로 */
+  .bss_ext :
+  {
+    *(.large_bss*)
+  } >RAM_D1_CACHED
+}
+```
+
+#### 현실적인 선택
+
+| 방법 | 장점 | 단점 |
+|------|------|------|
+| 현재 (수동 지정) | 메모리 위치 명확 | 매번 속성 지정 필요 |
+| 기본 RAM 변경 | 자동 할당 | 스택도 이동됨, 약간 느림 |
+| 스택만 DTCM 유지 | 성능 + 편의성 | 링커 스크립트 복잡 |
+
+> **추천**: 현재처럼 DTCM을 기본으로 두고, 큰 버퍼만 `SECTION_CACHED`로 명시하는 게 가장 안전합니다. 어차피 큰 버퍼는 몇 개 안 되니까요.
+
 ## 주변장치별 메모리 제한 (중요!)
 
 STM32H7은 버스 구조상 **특정 주변장치는 특정 RAM 영역만 접근 가능**합니다.
