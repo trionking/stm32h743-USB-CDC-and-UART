@@ -40,6 +40,50 @@ STM32H7의 다중 메모리 영역을 활용한 최적화 구성:
 | RAM_D1_NC | 0x24000000 | 384KB | USB, FMC 버퍼 (Non-cacheable) |
 | RAM_D1_CACHED | 0x24060000 | 128KB | 대용량 데이터 |
 | RAM_D2 | 0x30000000 | 288KB | UART DMA 버퍼 |
+| RAM_D3 | 0x38000000 | 64KB | BDMA 버퍼 (D3 도메인 전용) |
+
+## 주변장치별 메모리 제한 (중요!)
+
+STM32H7은 버스 구조상 **특정 주변장치는 특정 RAM 영역만 접근 가능**합니다.
+
+### DMA 컨트롤러별 접근 가능 메모리
+
+| DMA | DTCM | RAM_D1 | RAM_D2 | RAM_D3 |
+|-----|------|--------|--------|--------|
+| MDMA | ✅ | ✅ | ✅ | ✅ |
+| DMA1/DMA2 | ❌ | ✅ | ✅ | ❌ |
+| BDMA | ❌ | ❌ | ❌ | ✅ |
+| SDMMC IDMA | ❌ | ✅ | ❌ | ❌ |
+
+### 주변장치별 필수 RAM 영역
+
+| 주변장치 | 사용 DMA | 필수 RAM | 비고 |
+|----------|----------|----------|------|
+| **USB OTG FS/HS** | - | **RAM_D1** | AXI 버스 직접 접근 |
+| **SDMMC1/2** | IDMA | **RAM_D1** | 내장 IDMA 사용 |
+| **ADC3** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| **LPUART1** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| **I2C4** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| **SPI6** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| ADC1/2 | DMA1/2 | RAM_D1 또는 RAM_D2 | |
+| UART/USART | DMA1/2 | RAM_D1 또는 RAM_D2 | |
+| SPI1~5 | DMA1/2 | RAM_D1 또는 RAM_D2 | |
+| I2C1~3 | DMA1/2 | RAM_D1 또는 RAM_D2 | |
+
+> **주의**: 잘못된 메모리 영역에 버퍼를 배치하면 **Hard Fault** 또는 **데이터 전송 실패**가 발생합니다.
+
+### D3 도메인 특징
+
+D3 도메인 주변장치(ADC3, LPUART1, I2C4, SPI6)는:
+- **BDMA만 사용 가능** (DMA1/DMA2 사용 불가)
+- **RAM_D3에만 버퍼 배치 가능**
+- **저전력 모드(Standby)에서도 동작 가능** → 웨이크업 트리거로 활용
+
+```c
+// ADC3 DMA 버퍼 예시
+__attribute__((section(".ram_d3"), aligned(32)))
+uint16_t adc3_buffer[256];
+```
 
 ## USB CDC 설정 (중요!)
 

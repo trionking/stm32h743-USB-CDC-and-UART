@@ -103,6 +103,18 @@ __attribute__((section(".large_bss"), aligned(32))) uint8_t large_data[SIZE];
 | RAM_D2 | ✅ | ✅ | ❌ | ✅ |
 | RAM_D3 | ❌ | ✅ | ✅ | ❌ |
 
+### 주변장치별 필수 RAM 영역
+
+| 주변장치 | 사용 DMA | 필수 RAM | 비고 |
+|----------|----------|----------|------|
+| **USB OTG FS/HS** | - | **RAM_D1** | AXI 버스 직접 접근 |
+| **SDMMC1/2** | IDMA | **RAM_D1** | 내장 IDMA 사용 |
+| **ADC3** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| **LPUART1** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| **I2C4** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| **SPI6** | BDMA | **RAM_D3** | D3 도메인 전용 |
+| ADC1/2, UART, SPI1~5, I2C1~3 | DMA1/2 | RAM_D1 또는 RAM_D2 | |
+
 ### USB OTG FS 메모리 제약 (중요!)
 
 **USB OTG FS는 AXI 버스만 사용하므로 DTCM(0x20000000)에 접근 불가!**
