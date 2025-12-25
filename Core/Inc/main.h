@@ -51,6 +51,7 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+void MX_SDMMC1_SD_Init(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -65,10 +66,24 @@ void Error_Handler(void);
 #define OT_SD_EN_GPIO_Port GPIOG
 #define IN_nSD_CD_Pin GPIO_PIN_12
 #define IN_nSD_CD_GPIO_Port GPIOG
+#define OT_ESP_RST_Pin GPIO_PIN_5
+#define OT_ESP_RST_GPIO_Port GPIOB
 #define IN_SW0_Pin GPIO_PIN_1
 #define IN_SW0_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
+#define SDMMC1_CMD_Pin GPIO_PIN_2
+#define SDMMC1_CMD_GPIO_Port GPIOD
+#define SDMMC1_CK_Pin GPIO_PIN_12
+#define SDMMC1_CK_GPIO_Port GPIOC
+#define SDMMC1_D3_Pin GPIO_PIN_11
+#define SDMMC1_D3_GPIO_Port GPIOC
+#define SDMMC1_D2_Pin GPIO_PIN_10
+#define SDMMC1_D2_GPIO_Port GPIOC
+#define SDMMC1_D1_Pin GPIO_PIN_9
+#define SDMMC1_D1_GPIO_Port GPIOC
+#define SDMMC1_D0_Pin GPIO_PIN_8
+#define SDMMC1_D0_GPIO_Port GPIOC
 
 /* USER CODE END Private defines */
 
